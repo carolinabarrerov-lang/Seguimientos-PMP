@@ -1,0 +1,11 @@
+variable,corte_2026-06-30,corte_2026-07-31,corte_2026-09-30,fuente
+Hallazgos (total acumulado),628,632,642,Resumen / informe OCI
+Hallazgos cerrados (efectivos),400,402,403,Resumen / informe OCI
+Hallazgos vigentes,225,,,Informe OCI jun-2026
+Hallazgos no vigentes,3,3,3,Resumen
+Nuevos hallazgos del periodo,10,3,6,Resumen
+Planes implementados,130,128,136,Resumen
+Planes en término,61,59,72,Resumen
+Planes vencidos,28,32,22,Resumen
+Planes sin plan,35,38,38,Resumen
+Planes vigentes (total),254,257,268,Calculado: impl+término+vencidos+sin plan

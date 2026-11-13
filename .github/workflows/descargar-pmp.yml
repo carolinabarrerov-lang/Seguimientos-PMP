@@ -53,8 +53,11 @@ jobs:
           path: datos/raw
           if-no-files-found: warn
 
-      - name: Guardar en el repositorio
+      # GITHUB_TOKEN de este repositorio es de solo lectura: si el push no está
+      # permitido, el job no debe fallar (los archivos quedan en el artefacto).
+      - name: Guardar en el repositorio (si el token lo permite)
         if: always()
+        continue-on-error: true
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
