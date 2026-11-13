@@ -1,0 +1,67 @@
+name: Descargar bases PMP ANI
+
+# Descarga los archivos publicados en la página del Plan de Mejoramiento por
+# Procesos (PMP) de la ANI y los deja disponibles como artefacto.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  descargar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Descargar documentos
+        run: |
+          set -euo pipefail
+          mkdir -p datos/raw
+          UA='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36'
+
+          descargar() {
+            local nombre="$1"; local url="$2"
+            echo "-> $nombre"
+            curl -sSL --retry 3 --retry-delay 5 --max-time 300 \
+              -A "$UA" -e 'https://www.ani.gov.co/' -o "datos/raw/$nombre" -w '   HTTP %{http_code} | %{size_download} bytes | %{content_type}\n' "$url" || true
+            file "datos/raw/$nombre" || true
+          }
+
+          descargar "PMP_estado_2026-06-30.pdf" "https://www.ani.gov.co/documents/20117/0/Estado%20del%20PMP%20a%2030%20de%20junio%20de%202026%20(1).pdf/1df013ee-45b7-423e-71f8-faca39490fb9"
+          descargar "PMP_estado_2026-07-31.pdf" "https://www.ani.gov.co/documents/20117/0/estado%20del%20pmp%20con%20corte%20a%2031%20de%20Julio%20de2026/1596aaff-4728-c629-7e0f-5399479ea271"
+          descargar "PMP_estado_2026-09-30.pdf" "https://www.ani.gov.co/documents/20117/0/Estado_del_pmp_con_corte_a_30_de_Septiembre_de_2026/490f5a83-f85f-5143-1694-28f6b9795139"
+          descargar "pagina_pmp.html" "https://www.ani.gov.co/planes/plan-mejoramiento-procesos-pmp-21720"
+
+          ls -la datos/raw
+          # reporte de lo descargado
+          {
+            echo "# Archivos crudos (descarga automática)"
+            echo
+            for f in datos/raw/*; do
+              echo "- $(basename "$f"): $(stat -c%s "$f") bytes — $(file -b "$f")"
+            done
+          } > datos/raw/REPORTE.md
+          cat datos/raw/REPORTE.md
+
+      - name: Publicar artefacto
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pmp-ani-crudos
+          path: datos/raw
+          if-no-files-found: warn
+
+      - name: Guardar en el repositorio
+        if: always()
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f datos/raw
+          if git diff --cached --quiet; then
+            echo "Sin cambios"
+          else
+            git commit -m "Descarga automática de bases PMP ANI"
+            git push
+          fi
