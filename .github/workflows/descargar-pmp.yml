@@ -3,6 +3,7 @@ name: Descargar bases PMP ANI
 # Descarga los archivos publicados en la página del Plan de Mejoramiento por
 # Procesos (PMP) de la ANI y los deja disponibles como artefacto.
 on:
+  pull_request:
   workflow_dispatch:
 
 permissions:
